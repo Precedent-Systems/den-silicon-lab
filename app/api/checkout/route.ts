@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
   try {
     const { items, customerEmail } = await req.json();
@@ -20,14 +22,13 @@ export async function POST(req: Request) {
           description: item.description || 'Den Silicon Lab Vintage PC Hardware',
           images: item.image ? [item.image] : [],
         },
-        unit_amount: Math.round(item.price * 100), // Amount in cents
+        unit_amount: Math.round(item.price * 100),
       },
       quantity: item.quantity || 1,
     }));
 
     const origin = req.headers.get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
-    // 2026 Stripe Best Practice: Dynamic payment methods enabled by omitting payment_method_types
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items: lineItems,
